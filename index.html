@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatcord</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/8.0.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.0.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.0.1/firebase-database.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" />
+    <style>
+        body,
+        html {
+            background-color: #121212;
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            height: 100%;
+        }
+
+        .text-center1 {
+            color: #ffffff;
+            font-weight: bold;
+            font-size: 2.5rem;
+            z-index: 1;
+        }
+
+        .text-center2 {
+            color: #ffffff;
+            font-weight: bold;
+            font-size: 2.5rem;
+        }
+
+        #loginflex {
+            display: flex;
+            height: 100%;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            pointer-events: all;
+            opacity: 1;
+            transition: opacity 0.5s ease;
+        }
+
+        .logoNameflex {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-evenly;
+            align-items: center;
+            width: 100%;
+            height: auto;
+        }
+
+        #loginflex.hidden {
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+        }
+
+        #homePage {
+            opacity: 1;
+            pointer-events: all;
+            transition: opacity 1.5s ease;
+        }
+
+        #homePage.hidden {
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 1.5s ease;
+        }
+
+        #loginForm {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            background: #1e1e1e;
+            padding: 20px;
+            width: 90%;
+            max-width: 350px;
+            height: 40%;
+            min-height: 400px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .form-label {
+            color: #ffffff;
+            position: relative;
+        }
+
+        .form-control {
+            background: #2b2b2b;
+            color: #ffffff;
+            border: 1px solid #444;
+        }
+
+        header {
+            background-color: #1f1f1f;
+            border-bottom: 1px solid #444;
+        }
+
+        #chatSidebar {
+            background: #1e1e1e;
+            color: #ffffff;
+            transition: all 0.3s ease;
+        }
+
+        #chatSidebar.hidden {
+            margin-left: -250px;
+        }
+
+        .list-group {
+            background: #1e1e1e;
+        }
+
+        .list-group-item {
+            background: #2b2b2b;
+            color: #ffffff;
+            border: 1px solid #444;
+            transition: all 0.3s ease;
+        }
+
+        .list-group-item:hover {
+            background: #3c3c3c;
+        }
+
+        #chatMain {
+            background: #1e1e1e;
+            transition: all 0.3s ease;
+        }
+
+        #chatMain.full {
+            margin-left: 0;
+            width: 100%;
+            display: block;
+        }
+
+        #chatHeader {
+            background-color: #2b2b2b;
+            color: #ffffff;
+        }
+
+        #messages {
+            background-color: #121212;
+            color: #ffffff;
+            border: 1px solid #444;
+        }
+
+        .message {
+            background-color: #2b2b2b;
+            color: #ffffff;
+            transition: all 0.3s ease;
+        }
+
+        .message-container {
+            display: flex;
+            justify-content: flex-start;
+        }
+
+        .message-container.right {
+            justify-content: flex-end;
+        }
+
+        .input-group {
+            background: #1e1e1e;
+            border-top: 1px solid #444;
+        }
+
+        #messageInput {
+            background-color: #2b2b2b;
+            color: #ffffff;
+            border: 1px solid #444;
+        }
+
+        #sendBtn {
+            background-color: #007bff;
+            border: none;
+        }
+
+        #sendBtn:hover {
+            background-color: #0056b3;
+        }
+
+        #pollModal {
+            background: #2b2b2b;
+            color: #ffffff;
+            transition: all 0.3s ease;
+        }
+
+        #pollModal .form-control {
+            background: #121212;
+            color: #ffffff;
+            border: 1px solid #444;
+        }
+
+        #pollModal .btn-primary {
+            background-color: #007bff;
+            border: none;
+        }
+
+        #pollModal .btn-secondary {
+            background-color: #6c757d;
+            border: none;
+        }
+
+        .reaction-buttons button {
+            border: none;
+            background: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+
+        #toggleSidebar {
+            cursor: pointer;
+            font-size: 1.5rem;
+            color: #ffffff;
+        }
+
+        #toggleSidebar:hover {
+            color: #cccccc;
+        }
+
+        .form-control::-webkit-input-placeholder {
+            color: grey;
+            opacity: 1;
+        }
+
+        .form-control:hover {
+            background: grey;
+        }
+
+        .lsflex {
+            display: flex;
+            align-items: center;
+            width: 90%;
+            height: 60px;
+            justify-content: space-between;
+        }
+
+        #loginBtn {
+            width: 45%;
+            height: 40px;
+            font-weight: bold;
+            color: #fff;
+            transform: scale(1);
+            background: linear-gradient(to right, #00aaFF, #0072FF);
+            transition: transform 0.2s ease;
+        }
+
+        #loginBtn:active {
+            box-shadow: 0 6px 20px rgba(51, 212, 255, 0.8);
+            transform: scale(0.85);
+            transition: transform 0.2s ease;
+        }
+
+        #signupBtn {
+            width: 45%;
+            height: 40px;
+            font-weight: bold;
+            color: #fff;
+            transform: scale(1);
+            background: linear-gradient(to right, #4A00E0, #8e2de2);
+            transition: transform 0.2s ease;
+        }
+
+        #signupBtn:active {
+            box-shadow: 0 6px 20px rgba(157, 80, 187, 0.8);
+            transform: scale(0.85);
+            transition: transform 0.2s ease;
+        }
+
+        .logoM {
+            width: 100px;
+            height: 100px;
+            position: absolute;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app" style="height:100%;">
+        <div id="loginflex">
+            <div id="loginForm">
+                <div class="logoNameflex">
+                    <div class="text-center1">Chat</div>
+                    <img class="logoM"
+                        src="https://www.dropbox.com/scl/fi/vtevtw43zarryynh7xxx5/PENUP_20241221_145947.png?rlkey=35kxrgjv1k12sno6ei5i9bo79&st=eqzkcj4m&raw=1" />
+                    <div class="text-center2">cord</div>
+                </div>
+                <div
+                    style="display:flex; flex-direction:column; justify-content:center; align-items:center; height: 80%; width:80%;">
+                    <div class="mb-3">
+                        <label class="form-label">Username</label>
+                        <input type="text" placeholder="Enter your username" class="form-control" id="username"
+                            required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" style="color:white;">Password</label>
+                        <input type="password" class="form-control" id="password" placeholder="Enter your password"
+                            required>
+                    </div>
+                    <div class="lsflex">
+                        <button type="button" class="btn" id="loginBtn">Login</button>
+                        <button type="button" class="btn" id="signupBtn">Sign Up</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="homePage" class="hidden">
+            <header class="bg-primary text-white p-3" style="height:70px;">
+                <h1>Chatcord</h1>
+                <i class="fas fa-bars toggle-btn" id="toggleSidebar"
+                    style="position:relative;left:300px;top:-35px;"></i>
+            </header>
+            <div class="d-flex position-relative">
+                <nav id="chatSidebar" class="p-3" style="height: 100vh; background:black;">
+                    <h5>Chats</h5>
+                    <ul id="userChats" class="list-group" style='font-size:20px;width:100%;position:relative;'></ul>
+                    <button class="btn btn-success mt-3 w-100" id="addChatBtn">Add Chat</button>
+                </nav>
+
+                <div id="chatMain" class="p-3 flex-grow-1">
+                    <div id="chatHeader" class="border-bottom pb-2 mb-2">
+                        <h6 id="chatTitle" style="left:2px;position:relative;">Select</h6>
+                        <button id="pollButton" class="btn btn-sm btn-secondary">Create Poll</button>
+                    </div>
+                    <div id="messages" class="border p-3"></div>
+                    <div id="pollModal">
+                        <h5>Create a Poll</h5>
+                        <form id="pollForm">
+                            <div class="mb-3">
+                                <label for="pollQuestion" class="form-label">Poll Question</label>
+                                <input type="text" id="pollQuestion" class="form-control" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="pollOptions" class="form-label">Options (comma-separated)</label>
+                                <input type="text" id="pollOptions" class="form-control" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Create Poll</button>
+                            <button type="button" class="btn btn-secondary" id="closePollModal">Cancel</button>
+                        </form>
+                    </div>
+                    <div class="input-group mt-3">
+                        <input type="text" id="messageInput" class="form-control" placeholder="Type a message...">
+                        <button class="btn btn-primary" id="sendBtn">Send</button>
+                    </div>
+                </div>
+            </div>
+            <script>
+                document.addEventListener('DOMContentLoaded', () => {
+                    const firebaseConfig = {
+                        apiKey: "AIzaSyCDLU2OR4N9JhMvAryJuZLU-7yqM_6hfN8",
+                        authDomain: "fitness-a289e.firebaseapp.com",
+                        projectId: "fitness-a289e",
+                        storageBucket: "fitness-a289e.firebasestorage.app",
+                        messagingSenderId: "28074375190",
+                        appId: "1:28074375190:web:be165635eb8a37812fdd37",
+                        measurementId: "G-1HQF7LE7WN"
+                    };
+
+                    firebase.initializeApp(firebaseConfig);
+
+                    const db = firebase.database();
+                    const badWords = ['fuck', 'gyatt', 'fck', 'bitch', 'nigga', 'nigger', 'asshole', 'ass', 'faggot', 'motherfucker', 'bsdk', 'quim', 'raghead', 'raging boner', 'rape', 'raping', 'rapist', 'rectum', 'reverse cowgirl', 'rimjob', 'rimming', 'rosy palm', 'rosy palm and her 5 sisters', 'rusty', 'trombone', 'sadism', 'santorum', 'scat', 'schlong', 'scissoring',
+                        'semen',
+                        'sex',
+                        'sexcam',
+                        'sexo',
+                        'sexy',
+                        'sexual',
+                        'sexually',
+                        'sexuality',
+                        'shaved beaver',
+                        'shaved pussy',
+                        'voyuer',
+                        'vulva',
+                        'wank',
+                        'wetback',
+                        'wet dream',
+                        'white power',
+                        'whore',
+                        'worldsex',
+                        'wrapping men',
+                        'wrinkled starfish',
+                        'xx',
+                        'xxx',
+                        'yaoi',
+                        'yellow showers',
+                        'yiffy',
+                        'zoophilia',
+                        '🖕'];
+
+                    const loginForm = document.getElementById("loginflex");
+                    const homePage = document.getElementById("homePage");
+                    const loginBtn = document.getElementById("loginBtn");
+                    const signupBtn = document.getElementById("signupBtn");
+                    const userChats = document.getElementById("userChats");
+                    const chatTitle = document.getElementById("chatTitle");
+                    const messages = document.getElementById("messages");
+                    const messageInput = document.getElementById("messageInput");
+                    const sendBtn = document.getElementById("sendBtn");
+                    const addChatBtn = document.getElementById("addChatBtn");
+                    const toggleSidebar = document.getElementById("toggleSidebar");
+                    const chatSidebar = document.getElementById("chatSidebar");
+                    const chatMain = document.getElementById("chatMain");
+
+                    let currentUser = null;
+                    let currentChat = null;
+
+                    toggleSidebar.addEventListener('click', () => {
+                        chatSidebar.classList.toggle("hidden");
+                        chatMain.classList.toggle("full");
+                        chatSidebar.style.display = "block"
+                    });
+
+                    function hashPassword(password) {
+                        return CryptoJS.SHA256(password).toString(CryptoJS.enc.Hex);
+                    }
+
+                    loginBtn.addEventListener("click", async () => {
+                        const username = document.getElementById("username").value;
+                        const password = document.getElementById("password").value;
+
+                        const userRef = db.ref(`users/${username}`);
+                        const snapshot = await userRef.once("value");
+                        const userData = snapshot.val();
+
+                        if (userData && userData.password === hashPassword(password)) {
+                            currentUser = username;
+                            loadHomePage();
+                        } else alert("Invalid login credentials!");
+                    });
+
+                    signupBtn.addEventListener("click", async () => {
+                        const username = document.getElementById("username").value;
+                        const password = hashPassword(document.getElementById("password").value);
+
+                        const userRef = db.ref(`users/${username}`);
+                        if (!(await userRef.once("value")).exists()) {
+                            if (document.getElementById("password").value > 8) {
+                                await userRef.set({ username, password });
+                                alert("Account created!");
+                            }
+                            else {
+                                alert("Password is too short!");
+                            }
+                        }
+                        else alert("Username Exists!")
+                    });
+
+                    function loadHomePage() {
+                        loginForm.classList.add("hidden");
+                        setTimeout(() => { loginForm.classList.add("d-none"); }, 500);
+                        homePage.classList.remove("hidden");
+                        loadChats();
+                    }
+
+                    function loadChats() {
+                        db.ref("chats").on("value", (snapshot) => {
+                            userChats.innerHTML = "";
+                            snapshot.forEach((child) => {
+                                const chat = child.val();
+                                const li = document.createElement("li");
+                                li.classList.add("list-group-item");
+                                li.textContent = chat.name;
+                                li.onclick = () => openChat(chat);
+
+                                userChats.appendChild(li);
+                            });
+                        });
+                    }
+
+                    function openChat(chat) {
+                        currentChat = chat;
+                        chatTitle.textContent = chat.name;
+                        loadMessages();
+                        chatSidebar.classList.toggle("hidden");
+                        chatMain.classList.toggle("full");
+                        chatSidebar.style.display = "none"
+                    }
+
+                    function loadMessages() {
+                        db.ref(`messages/${currentChat.id}`).on("value", (snapshot) => {
+                            messages.innerHTML = "";
+                            snapshot.forEach((child) => {
+                                const { sender, text } = child.val();
+                                const container = document.createElement("div");
+                                container.className = "message-container";
+                                if (sender === currentUser) container.classList.add("right");
+
+                                const messageDiv = document.createElement("div");
+                                messageDiv.className = "message";
+                                messageDiv.innerHTML = `<strong>${sender}:</strong> ${text}`;
+                                container.appendChild(messageDiv);
+
+                                messages.appendChild(container);
+                            });
+                        });
+                    }
+                    messageInput.addEventListener('input', () => {
+                        if (badWords.some(word => messageInput.value.toLowerCase().includes(word))) {
+                            messageInput.value = '';
+                            alert("I will ban you If you type that shit again");
+                        }
+                    });
+
+                    sendBtn.addEventListener("click", () => {
+                        if (messageInput.value) {
+                            db.ref(`messages/${currentChat.id}`).push({
+                                sender: currentUser,
+                                text: messageInput.value
+                            });
+                            messageInput.value = "";
+                        }
+                    });
+
+                    addChatBtn.addEventListener("click", async () => {
+                        const participants = prompt("Enter Your Group Name:");
+                        const chat = { id: Date.now(), name: participants };
+                        await db.ref("chats").push(chat);
+                    });
+                    const openPollModal = () => {
+                        document.getElementById('pollModal').style.display = 'block';
+                    };
+
+
+                    const closePollModal = () => {
+                        document.getElementById('pollModal').style.display = 'none';
+                    };
+
+                    document.getElementById('pollButton').addEventListener('click', openPollModal);
+                    document.getElementById('closePollModal').addEventListener('click', closePollModal);
+
+                    document.getElementById('pollForm').addEventListener('submit', (e) => {
+                        e.preventDefault();
+                        const question = document.getElementById('pollQuestion').value;
+                        const options = document.getElementById('pollOptions').value.split(',');
+
+                        db.ref(`messages/${currentChat.id}`).push({
+                            sender: currentUser,
+                            type: 'poll',
+                            question,
+                            options,
+                            votes: options.map(() => 0),
+                        });
+
+                        closePollModal();
+                    });
+
+                    const mentionRegex = /@([a-zA-Z0-9_]+)/g;
+
+                    function loadMessages() {
+                        if (!currentChat || !currentChat.id) {
+                            console.error("No chat selected.");
+                            return;
+                        }
+
+                        db.ref(`messages/${currentChat.id}`).on('value', (snapshot) => {
+                            messages.innerHTML = '';
+                            snapshot.forEach((child) => {
+                                const { sender, text, type, question, options, votes } = child.val();
+                                const container = document.createElement('div');
+                                container.className = 'message-container';
+                                if (sender === currentUser) container.classList.add('right');
+
+                                const messageDiv = document.createElement('div');
+                                messageDiv.className = 'message';
+
+                                if (type === 'poll') {
+                                    messageDiv.innerHTML = `<strong>${sender}:</strong> <em>${question}</em>`;
+                                    options.forEach((option, index) => {
+                                        const button = document.createElement('button');
+                                        button.classList.add('btn', 'btn-outline-primary', 'btn-sm', 'me-1');
+                                        button.textContent = `${option} (${votes[index]})`;
+
+                                        // Check if the user has already voted
+                                        hasUserVoted(child.key).then((hasVoted) => {
+                                            if (hasVoted) {
+                                                button.disabled = true; // Disable the button if user already voted
+                                                button.textContent += " (Voted)";
+                                            }
+                                        });
+
+                                        button.addEventListener('click', async () => {
+                                            if (await hasUserVoted(child.key)) {
+                                                alert("You have already voted for this poll.");
+                                            } else {
+
+                                                votes[index]++;
+                                                child.ref.update({ votes });
+
+                                                db.ref(`votes/${currentChat.id}/${child.key}/${currentUser}`).set(option);
+
+                                                db.ref(`messages/${currentChat.id}`).push({
+                                                    sender: currentUser,
+                                                    text: `${currentUser} voted for "${option}" in the poll "${question}".`,
+                                                });
+                                                Array.from(button.parentNode.children).forEach((btn) => (btn.disabled = true));
+                                                button.textContent += " (Voted)";
+                                            }
+                                        });
+
+                                        messageDiv.appendChild(button);
+                                    });
+                                } else {
+
+                                    const formattedText = text.replace(mentionRegex, '<a href="#" class="mention" data-username="$1">@ $1</a>');
+                                    messageDiv.innerHTML = `<strong>${sender}:</strong> ${formattedText}`;
+                                }
+
+                                const reactionButtons = document.createElement('div');
+                                reactionButtons.className = 'reaction-buttons';
+                                ['👍', '❤️', '😂', '💀'].forEach((reaction) => {
+                                    const button = document.createElement('button');
+                                    button.textContent = reaction;
+                                    button.addEventListener('click', () => {
+                                        db.ref(`messages/${currentChat.id}`).push({
+                                            sender: currentUser,
+                                            text: `${currentUser} reacted "${reaction}" to "${text}" by ${sender}.`,
+                                        });
+                                    });
+                                    reactionButtons.appendChild(button);
+                                });
+
+                                messageDiv.appendChild(reactionButtons);
+                                container.appendChild(messageDiv);
+                                messages.appendChild(container);
+                            });
+
+                            document.querySelectorAll('.mention').forEach(mention => {
+                                mention.addEventListener('click', () => {
+                                    const username = mention.dataset.username;
+                                    openChat({ id: username, name: username });
+                                });
+                            });
+                        });
+
+                        messageInput.addEventListener('input', () => {
+                            if (badWords.some(word => messageInput.value.toLowerCase().includes(word))) {
+                                messageInput.value = '';
+                                alert("I will ban you If you type that shit again");
+                            }
+                        });
+
+                        sendBtn.addEventListener("click", () => {
+                            if (messageInput.value) {
+                                db.ref(`messages/${currentChat.id}`).push({
+                                    sender: currentUser,
+                                    text: messageInput.value
+                                });
+                                messageInput.value = "";
+                            }
+                        });
+                    }
+
+                    async function hasUserVoted(pollKey) {
+                        const voteRef = db.ref(`votes/${currentChat.id}/${pollKey}/${currentUser}`);
+                        const snapshot = await voteRef.once('value');
+                        return snapshot.exists();
+                    }
+                    const typingIndicator = document.createElement("h6");
+                    typingIndicator.id = "typingIndicator";
+                    typingIndicator.style.display = "none";
+                    typingIndicator.style.position = "relative";
+                    typingIndicator.style.top = "60px";
+                    typingIndicator.style.left = "10px";
+                    typingIndicator.style.fontSize = "14px";
+                    typingIndicator.style.color = "#555";
+                    typingIndicator.textContent = "Someone is typing...";
+                    messageInput.parentNode.insertBefore(typingIndicator, messageInput);
+
+                    let typingTimeout;
+
+                    messageInput.addEventListener("input", () => {
+                        typingIndicator.style.display = "block"; // djsjsjs
+
+                        clearTimeout(typingTimeout);
+                        typingTimeout = setTimeout(() => {
+                            typingIndicator.style.display = "none"; // s
+                        }, 1000);
+                    });
+                });
+            </script>
+</body>
+
+</html>
