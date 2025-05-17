@@ -441,13 +441,8 @@
 
                         const userRef = db.ref(`users/${username}`);
                         if (!(await userRef.once("value")).exists()) {
-                            if (document.getElementById("password").value > 8) {
                                 await userRef.set({ username, password });
                                 alert("Account created!");
-                            }
-                            else {
-                                alert("Password is too short!");
-                            }
                         }
                         else alert("Username Exists!")
                     });
